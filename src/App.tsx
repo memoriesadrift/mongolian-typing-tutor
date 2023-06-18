@@ -1,4 +1,5 @@
 import {
+  Button,
   Grommet,
   Heading,
   Page,
@@ -9,22 +10,10 @@ import {
 } from 'grommet'
 import { ReactNode, useEffect, useState } from 'react'
 import { UseKeyDownCallbackParams, useKeyDown } from './utils/useKeyDown'
+import { getRandomText } from './utils/useGetRandomText'
 
 function App() {
-  const [text, _setText] = useState(
-    `
-    Цаг агаар тэнэг халуун
-    Хотын амьдрал нэгэн хэвийн
-    Үргэлжилсээр, энх тайвны өргөн чөлөө
-    Өчигдөр уусан юмны нөлөө
-    Гэнэт чи гарч ирсэн
-    Нэрийг чинь би санахгүй гайхсан
-    Чи хэлсэн өчигдөр танилцсан
-    Би санахгүй өчигдөр уусан байсан, уусан байсан
-  `
-      .trim()
-      .split('')
-  )
+  const [text, setText] = useState<Array<String>>(getRandomText())
   const [typedText, setTypedText] = useState<Array<String>>([])
   const [displayText, setDisplayText] = useState<Array<ReactNode>>([])
 
@@ -34,7 +23,7 @@ function App() {
       return
     }
 
-    // Ignore typing non-characters
+    // Ignore typing non-character keys
     if (key.length > 1) {
       return
     }
@@ -42,7 +31,13 @@ function App() {
     setTypedText((letters) => [...letters, key])
   }
 
+  useKeyDown(keyPressCallback)
+
   useEffect(() => {
+    if (typedText.length >= text.length) {
+      return
+    }
+
     setDisplayText(
       text.map((key, idx) => {
         const isTyped = typedText.length > idx
@@ -58,15 +53,23 @@ function App() {
     )
   }, [typedText])
 
-  useKeyDown(keyPressCallback)
+  const refreshText = () => {
+    setText(getRandomText())
+    setTypedText([])
+  }
 
   return (
     <Grommet theme={grommet} full>
       <Page kind="narrow" fill>
         <PageContent>
           <Heading alignSelf="center">Mongolian Typing Tutor 🇲🇳</Heading>
-          <Paragraph alignSelf="center">{displayText}</Paragraph>
-          <Paragraph alignSelf="center">{typedText.join('')}</Paragraph>
+          <Paragraph alignSelf="center" style={{ whiteSpace: 'pre-line' }}>
+            {displayText}
+          </Paragraph>
+          <Paragraph alignSelf="center" style={{ whiteSpace: 'pre-line' }}>
+            {typedText.join('')}
+          </Paragraph>
+          <Button size="small" label="New Text" onClick={refreshText} />
         </PageContent>
       </Page>
     </Grommet>
